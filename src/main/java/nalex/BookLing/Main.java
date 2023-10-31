@@ -1,17 +1,16 @@
 package nalex.BookLing;
 
 import com.formdev.flatlaf.FlatLightLaf;
-import nl.siegmann.epublib.domain.Book;
-import nl.siegmann.epublib.domain.Metadata;
+import nl.siegmann.epublib.domain.*;
 import nl.siegmann.epublib.epub.EpubReader;
 
 import javax.swing.*;
-import javax.swing.text.JTextComponent;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
+import javax.swing.filechooser.FileFilter;
+import javax.swing.filechooser.FileNameExtensionFilter;
+import java.io.*;
+import java.util.List;
 
+import nl.siegmann.epublib.domain.TOCReference;
 public class Main {
 
     public static int window_width = 500;
@@ -27,23 +26,46 @@ public class Main {
         // Using this process to invoke the constructor,
         // JFileChooser points to user's default directory
         JFileChooser j = new JFileChooser();
+        FileFilter filter = new FileNameExtensionFilter("Ebook files", "epub");
+        j.setFileFilter(filter);
+        j.showOpenDialog(null);
 
-        // Open the save dialog
-        j.showSaveDialog(null);
-
-
-        File initialFile = new File("src/main/resources/test123.epub");
+//        File initialFile = new File("src/main/resources/test123.epub");
+        File initialFile = j.getSelectedFile();
         InputStream targetStream = new FileInputStream(initialFile);
-
 
         EpubReader epubReader = new EpubReader();
         Book testBook = epubReader.readEpub(targetStream);
         Metadata metadata = testBook.getMetadata();
 
         JFrame f=new JFrame();
+        f.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
-        System.out.println(testBook.getContents().toString());
-        JTextComponent testField = new JTextArea(testBook.getContents().toString()); // get the author out of the list, so it looks nice
+        List<String> titles = testBook.getMetadata().getTitles();
+
+        System.out.println("book title:" + (titles.isEmpty() ? "book has no title" : titles.get(0)));
+
+//        Spine spine = new Spine(testBook.getTableOfContents());
+
+        //new try ig?
+
+        logTableOfContents(testBook.getTableOfContents().getTocReferences(), 0);
+
+        JTextPane testField = new JTextPane();
+//        testField.setLineWrap(true);
+        testField.setContentType("text/html");
+        System.out.println(testField.isFontSet());
+        StringBuilder book_string = new StringBuilder();
+        int counter = 0;
+        for (Resource content : testBook.getContents()){
+            System.out.println(counter);
+            counter += 1;
+
+            if (counter > 5) {
+                book_string.append(new String(content.getData()));
+            }
+        }
+        testField.setText(book_string.toString());
 
         testField.setBounds(0,0, window_width, window_height);
         testField.setEditable(false);
@@ -53,6 +75,24 @@ public class Main {
         f.setLayout(null);//using no layout managers
         f.setVisible(true);//making the frame visible
 
-        System.out.println(metadata.getAuthors().toString());
+        // prints authors? idk lmao
+        for (int i = 0; metadata.getAuthors().size() > i; i++){
+            System.out.println(metadata.getAuthors().get(i));
+        }
     }
+    private static void logTableOfContents(List<TOCReference> tocReferences, int depth) {
+            if (tocReferences == null) {
+                return;
+            }
+            for (TOCReference tocReference : tocReferences) {
+                StringBuilder tocString = new StringBuilder();
+                for (int i = 0; i < depth; i++) {
+                    tocString.append("\t");
+                }
+                tocString.append(tocReference.getTitle());
+
+                logTableOfContents(tocReference.getChildren(), depth + 1);
+//                System.out.println(tocString.toString());
+            }
+        }
 }
