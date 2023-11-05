@@ -19,17 +19,17 @@ public class GUIHandler {
     public File chooseFile() {
         JFileChooser selectFile = new JFileChooser();
         FileFilter filter = new FileNameExtensionFilter("Ebook files", "epub");
+
         selectFile.setFileFilter(filter);
         selectFile.showOpenDialog(null);
+
         return selectFile.getSelectedFile();
     }
 
     public void setWindow(){
         JFrame windowFrame = new JFrame();
         windowFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-
         windowFrame.add(testField);
-
         windowFrame.setSize(window_width, window_height);
         windowFrame.setLayout(null);//using no layout managers
         windowFrame.setVisible(true);//making the windowFrame visible
