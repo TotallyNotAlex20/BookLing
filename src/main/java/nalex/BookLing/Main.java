@@ -1,55 +1,41 @@
 package nalex.BookLing;
 
-import nl.siegmann.epublib.domain.*;
-import nl.siegmann.epublib.epub.EpubReader;
-
 import java.io.*;
-import java.util.List;
 
-import nl.siegmann.epublib.domain.TOCReference;
+import org.apache.tika.exception.TikaException;
+import org.apache.tika.metadata.Metadata;
+import org.apache.tika.parser.ParseContext;
+import org.apache.tika.parser.epub.EpubParser;
+import org.apache.tika.sax.BodyContentHandler;
+import org.xml.sax.SAXException;
+
 public class Main {
-
-
-    public static void main(String[] args) throws IOException {
+    public static void main(String[] args) throws IOException, TikaException, SAXException {
 
         LaF.setLaF();
 
         GUIHandler guiHandler = new GUIHandler();
 
-        File bookFile = guiHandler.chooseFile();
-        InputStream targetStream = new FileInputStream(bookFile);
+        InputStream targetStream = new FileInputStream(guiHandler.chooseFile());
+        System.out.println("input stream get: \"" + targetStream + "\"");
 
-        EpubReader epubReader = new EpubReader();
-        Book book = epubReader.readEpub(targetStream);
-
-
-        logTableOfContents(book.getTableOfContents().getTocReferences(), 0);
-
-        StringBuilder book_string = new StringBuilder();
-        int counter = 0;
-        for (Resource content : book.getContents()){
-            counter += 1;
-
-            if (counter == 6) {
-                book_string.append(new String(content.getData()));
-                System.out.println(new String(content.getData()));
-            }
+        try {
+            // Parse the EPUB file
+            System.out.println(extractContentUsingFacade(targetStream));
+            System.out.println("kekw probably?");
+        } catch (Exception e) {
+            System.err.println("weeewooooo" + e);
+        } finally {
+            targetStream.close();
         }
+
     }
-
-    private static void logTableOfContents(List<TOCReference> tocReferences, int depth) {
-            if (tocReferences == null) {
-                return;
-            }
-            for (TOCReference tocReference : tocReferences) {
-                StringBuilder tocString = new StringBuilder();
-                for (int i = 0; i < depth; i++) {
-                    tocString.append("\t");
-                }
-                tocString.append(tocReference.getTitle());
-
-                logTableOfContents(tocReference.getChildren(), depth + 1);
-                System.out.println(tocString);
-            }
-        }
+    public static BodyContentHandler extractContentUsingFacade(InputStream stream) throws IOException, TikaException, SAXException {
+        EpubParser parser = new EpubParser();
+        Metadata metadata = new Metadata();
+        BodyContentHandler handler = new BodyContentHandler(-1);
+        ParseContext parseContext = new ParseContext();
+        parser.parse(stream, handler, metadata, parseContext);
+        return handler;
+    }
 }
