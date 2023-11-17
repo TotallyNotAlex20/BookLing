@@ -1,6 +1,7 @@
 package nalex.BookLing;
 
 import javax.swing.*;
+import javax.swing.event.HyperlinkEvent;
 import javax.swing.filechooser.FileFilter;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import java.io.File;
@@ -9,11 +10,21 @@ public class GUIHandler {
 
     public static int window_width = 500;
     public static int window_height = 600;
-    JTextPane testField = new JTextPane();
+    public JTextPane textField = new JTextPane();
+    public JScrollPane scrollField = (new JScrollPane(textField));
+
+    JFrame windowFrame = new JFrame();
 
     public GUIHandler() {
         setTextArea();
         setWindow();
+
+        textField.addHyperlinkListener(e -> {
+            if (e.getEventType() == HyperlinkEvent.EventType.ACTIVATED) {
+                String chapterId = e.getDescription();
+                System.out.println(chapterId);
+            }
+        });
     }
 
     public File chooseFile() {
@@ -26,19 +37,16 @@ public class GUIHandler {
         return selectFile.getSelectedFile();
     }
 
-    public void setWindow(){
-        JFrame windowFrame = new JFrame();
+    public void setWindow() {
         windowFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        windowFrame.add(testField);
         windowFrame.setSize(window_width, window_height);
-        windowFrame.setLayout(null);//using no layout managers
-        windowFrame.setVisible(true);//making the windowFrame visible
+        windowFrame.getContentPane().add(scrollField);
+        windowFrame.setVisible(true);
     }
 
-    public void setTextArea(){
-        testField.setBounds(0,0, window_width, window_height);
-        testField.setEditable(false);
-        testField.setContentType("text/html");
+    public void setTextArea() {
+        textField.setEditable(false);
+        textField.setContentType("text/html");
+        scrollField.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
     }
-
 }
